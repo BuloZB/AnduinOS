@@ -394,7 +394,7 @@ function check_disk_space() {
 }
 
 function update_system() {
-  print_ok "Ensuring current system (1.3 / Ubuntu 25.04) is fully updated..."
+  print_ok "Ensuring current system (1.4 / Ubuntu 25.04) is fully updated..."
 
   print_ok "Removing any APT pinning that may block upgrades..."
   sudo rm /etc/apt/preferences.d/no-* 2>/dev/null || true
