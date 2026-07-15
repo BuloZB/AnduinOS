@@ -866,7 +866,7 @@ function restore_and_upgrade_ppa_sources() {
 
             # Extract URL (First valid HTTP/HTTPS URL)
 
-            local url=$(grep -E '^\s*deb' "$file" | grep -oE 'https?://[^ ]+' | head -n1)
+            local url=$(grep -E '^\s*(deb|URIs:)' "$file" | grep -oE 'https?://[^ ]+' | head -n1)
             local can_upgrade=false
 
             if [ -n "$url" ]; then
@@ -929,8 +929,9 @@ function install_anduinos2_packages() {
       | sudo tee "${KEYRING_PATH}" > /dev/null
   judge "Add AnduinOS GPG key"
 
-  print_ok "Adding AnduinOS repository to APT sources..."
-  sudo tee /etc/apt/sources.list.d/anduinos.sources > /dev/null <<EOF
+  if [ ! -f /etc/apt/sources.list.d/anduinos.sources ]; then
+    print_ok "Adding AnduinOS repository to APT sources..."
+    sudo tee /etc/apt/sources.list.d/anduinos.sources > /dev/null <<EOF
 Types: deb
 URIs: ${APKG_SERVER}/artifacts/anduinos/
 Suites: ${SUITE}
@@ -938,7 +939,10 @@ Components: main
 Architectures: amd64
 Signed-By: ${KEYRING_PATH}
 EOF
-  judge "Add AnduinOS repository"
+    judge "Add AnduinOS repository"
+  else
+    print_ok "AnduinOS repository already exists, skipping creation."
+  fi
 
   sudo apt update
 
@@ -1128,11 +1132,11 @@ function main() {
   # Step 8: Update release files (to 2.0.0)
   update_release_files
 
-  # Step 9: Install AnduinOS 2.0 packages (coreutils, desktop, branding, app ecosystem)
-  install_anduinos2_packages
-
-  # Step 10: Restore and upgrade PPA sources
+  # Step 9: Restore and upgrade PPA sources
   restore_and_upgrade_ppa_sources
+
+  # Step 10: Install AnduinOS 2.0 packages (coreutils, desktop, branding, app ecosystem)
+  install_anduinos2_packages
 
   # Step 11: Cleanup system
   cleanup_system
